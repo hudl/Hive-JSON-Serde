@@ -36,9 +36,13 @@ public class JsonMapObjectInspector extends StandardMapObjectInspector {
     if (JsonObjectInspectorUtils.checkObject(data) == null) {
       return null;
     }
-    
-    JSONObject jObj = (JSONObject) data;
-    
+    JSONObject jObj;
+    try {
+      jObj = (JSONObject) data;
+    } catch (ClassCastException e) {
+      // If data should actually be a JSONArray, encode it as empty json
+      jObj = new JSONObject();
+    }
     return new JSONObjectMapAdapter(jObj);
   }
 

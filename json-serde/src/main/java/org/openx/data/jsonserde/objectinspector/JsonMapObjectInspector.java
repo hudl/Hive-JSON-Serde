@@ -38,7 +38,7 @@ public class JsonMapObjectInspector extends StandardMapObjectInspector {
     }
     JSONObject jObj;
     try {
-      jObj = (JSONObject) data;
+      jObj = safeJSONObjectCast(data);
     } catch (ClassCastException e) {
       // If data should actually be a JSONArray, encode it as empty json
       jObj = new JSONObject();
@@ -53,7 +53,7 @@ public class JsonMapObjectInspector extends StandardMapObjectInspector {
     if (JsonObjectInspectorUtils.checkObject(data) == null) {
       return -1;
     }
-     JSONObject jObj = (JSONObject) data;
+     JSONObject jObj = safeJSONObjectCast(data);
     return jObj.length();
   }
 
@@ -63,7 +63,7 @@ public class JsonMapObjectInspector extends StandardMapObjectInspector {
       return -1;
     }
     
-     JSONObject jObj = (JSONObject) data;
+     JSONObject jObj = safeJSONObjectCast(data);
         try {
             Object obj = jObj.get(key.toString());
             if(JSONObject.NULL == obj) {
@@ -75,5 +75,22 @@ public class JsonMapObjectInspector extends StandardMapObjectInspector {
             // key does not exists -> like null
             return null;
         }
-  }   
+  }
+
+    /**
+     * Sometimes this cast fails because the data is actually a JSONArray, not a JSONObject
+     * If this is the case, we assume it is in error and treat it as an empty object
+     * @param data (Object)
+     * @return data cast as a JSONObject
+     */
+    private JSONObject safeJSONObjectCast(Object data) {
+        JSONObject jObj;
+        try {
+            jObj = (JSONObject) data;
+        } catch (ClassCastException e) {
+            // If data should actually be a JSONArray, encode it as empty JSON
+            jObj = new JSONObject();
+        }
+        return jObj;
+    }
 }

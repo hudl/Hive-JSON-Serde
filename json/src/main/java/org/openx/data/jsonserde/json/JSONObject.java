@@ -142,6 +142,7 @@ public class JSONObject {
      * The map where the JSONObject's properties are kept.
      */
     private Map map;
+    private Map sensitiveMap;
 
 
     /**
@@ -158,6 +159,7 @@ public class JSONObject {
      */
     public JSONObject() {
         this.map = new HashMap();
+        this.sensitiveMap = new HashMap();
     }
 
 
@@ -244,13 +246,15 @@ public class JSONObject {
      */
     public JSONObject(Map map) {
         this.map = new HashMap();
+        this.sensitiveMap = new HashMap();
         if (map != null) {
             Iterator i = map.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry)i.next();
                 Object value = e.getValue();
                 if (value != null) {
-                    this.map.put(e.getKey(), wrap(value));
+                    this.map.put(e.getKey().toString().toLowerCase(), wrap(value));
+                    this.sensitiveMap.put(e.getKey(), wrap(value));
                 }
             }
         }
@@ -466,6 +470,24 @@ public class JSONObject {
         return object;
     }
 
+    /**
+     * Get the value object associated with a case sensitive
+     *
+     * @param key   A key string.
+     * @return      The object associated with the key.
+     * @throws      JSONException if the key is not found.
+     */
+    public Object getMap(String key) throws JSONException {
+        if (key == null) {
+            throw new JSONException("Null key.");
+        }
+        Object object = optMap(key);
+        if (object == null) {
+            throw new JSONException("JSONObject[" + quote(key) +
+                    "] not found.");
+        }
+        return object;
+    }
 
     /**
      * Get the boolean value associated with a key.
@@ -660,7 +682,15 @@ public class JSONObject {
     public boolean has(String key) {
         return this.map.containsKey(key);
     }
-    
+
+    /**
+     * In case I want to use case sensitive keys (like for Map)
+     * @param key   A key string.
+     * @return      true if the key exists in the json object
+     */
+    public boolean hasSensitive(String key) {
+        return this.sensitiveMap.containsKey(key);
+    }
     
     /**
      * Increment a property of a JSONObject. If there is no such property,
@@ -775,6 +805,14 @@ public class JSONObject {
         return key == null ? null : this.map.get(key);
     }
 
+    /**
+     * Get an optional value associated with a key.
+     * @param key   A key string.
+     * @return      An object which is the value, or null if there is no value.
+     */
+    public Object optMap(String key) {
+        return key == null ? null : this.sensitiveMap.get(key);
+    }
 
     /**
      * Get an optional boolean associated with a key.
@@ -998,7 +1036,8 @@ public class JSONObject {
 
                         Object result = method.invoke(bean, (Object[])null);
                         if (result != null) {
-                            map.put(key, wrap(result));
+                            map.put(key.toLowerCase(), wrap(result));
+                            sensitiveMap.put(key, wrap(result));
                         }
                     }
                 }
@@ -1109,7 +1148,8 @@ public class JSONObject {
         }
         if (value != null) {
             testValidity(value);
-            this.map.put(key, value);
+            this.map.put(key.toLowerCase(), value);
+            this.sensitiveMap.put(key, value);
         } else {
             remove(key);
         }

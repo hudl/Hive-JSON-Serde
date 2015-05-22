@@ -59,7 +59,7 @@ public class JsonMapObjectInspector extends StandardMapObjectInspector {
     
      JSONObject jObj = safeJSONObjectCast(data);
         try {
-            Object obj = jObj.get(key.toString());
+            Object obj = jObj.getMap(key.toString());
             if(JSONObject.NULL == obj) {
                 return null;
             } else {

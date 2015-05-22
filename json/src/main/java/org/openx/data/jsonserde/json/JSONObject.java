@@ -1176,7 +1176,12 @@ public class JSONObject {
      */
     public final JSONObject putOnce(String key, Object value) throws JSONException {
         if (key != null && value != null) {
-            if (opt(key) != null) {
+            /*
+             * NOTE: when a key is used multiple times (case insensitive) the
+             * most recent usage will overwrite all previous values when using
+             * all data structures except for Map<>
+             */
+            if (optMap(key) != null) {
                 throw new JSONException("Duplicate key \"" + key + "\"");
             }
             put(key, value);

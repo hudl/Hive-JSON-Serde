@@ -48,7 +48,7 @@ public class JsonMapObjectInspector extends StandardMapObjectInspector {
       return -1;
     }
      JSONObject jObj = safeJSONObjectCast(data);
-    return jObj.length();
+    return jObj.mapLength();
   }
 
   @Override

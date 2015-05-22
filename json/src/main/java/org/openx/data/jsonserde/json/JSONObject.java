@@ -751,6 +751,14 @@ public class JSONObject {
         return this.map.size();
     }
 
+    /**
+     * Get the number of keys stored in the case sensitive JSONObject.
+     *
+     * @return The number of keys in the JSONObject.
+     */
+    public int mapLength() {
+        return this.sensitiveMap.size();
+    }
 
     /**
      * Produce a JSONArray containing the names of the elements of this

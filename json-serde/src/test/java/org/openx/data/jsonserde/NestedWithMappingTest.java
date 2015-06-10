@@ -72,8 +72,7 @@ public class NestedWithMappingTest {
     */
     tbl.setProperty(Constants.LIST_COLUMNS, "ts,t,request");
     tbl.setProperty(Constants.LIST_COLUMN_TYPES, ("string,int," +
-        "struct<path:string,ip:string,headers:struct<useragent:array<string>>>").
-            toLowerCase());
+        "struct<path:string,ip:string,headers:struct<useragent:array<string>>>"));
     tbl.setProperty("mapping.useragent" , "User-Agent");
 
      instance.initialize(conf, tbl);

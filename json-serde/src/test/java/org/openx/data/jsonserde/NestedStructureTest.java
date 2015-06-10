@@ -49,13 +49,13 @@ public class NestedStructureTest {
     // from google video API
     tbl.setProperty(Constants.LIST_COLUMNS, "kind,etag,pageInfo,v_items");
     tbl.setProperty(Constants.LIST_COLUMN_TYPES, ("string,string,"+ 
-                "struct<totalResults:INT,resultsPerPage:INT>," + 
-                "ARRAY<STRUCT<kind:STRING," +
-                    "etag:STRING," +
-                     "id:STRING," +
-                     "v_statistics:STRUCT<viewCount:INT,likeCount:INT,dislikeCount:INT,favoriteCount:INT,commentCount:INT>," +
-                     "topicDetails:STRUCT<topicIds:ARRAY<STRING>,relevantTopicIds:ARRAY<STRING>>" +
-                      ">>").toLowerCase());
+                "struct<totalResults:int,resultsPerPage:int>," + 
+                "array<struct<kind:string," +
+                    "etag:string," +
+                     "id:string," +
+                     "v_statistics:struct<viewCount:int,likeCount:int,dislikeCount:int,favoriteCount:int,commentCount:int>," +
+                     "topicDetails:struct<topicIds:array<string>,relevantTopicIds:array<string>>" +
+                      ">>"));
     tbl.setProperty("mapping.v_items" , "items");
     tbl.setProperty("mapping.v_statistics" , "statistics");
 
@@ -76,7 +76,7 @@ public class NestedStructureTest {
                 , soi.getStructFieldData(result, soi.getStructFieldRef("etag")));
     
     // now, the trickier fields. pageInfo
-    StructField pageInfoSF = soi.getStructFieldRef("pageinfo");
+    StructField pageInfoSF = soi.getStructFieldRef("pageInfo");
     
     Object pageInfo = soi.getStructFieldData(result, pageInfoSF);
     StructObjectInspector pageInfoOI = (StructObjectInspector) pageInfoSF.getFieldObjectInspector();
@@ -85,7 +85,7 @@ public class NestedStructureTest {
     assertEquals(2, pageInfoOI.getAllStructFieldRefs().size());
     
     // now, let's check totalResults
-    StructField trSF = pageInfoOI.getStructFieldRef("totalresults");
+    StructField trSF = pageInfoOI.getStructFieldRef("totalResults");
     Object totalResults = pageInfoOI.getStructFieldData(pageInfo, trSF);
     
     assertTrue(trSF.getFieldObjectInspector().getCategory() == Category.PRIMITIVE);

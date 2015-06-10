@@ -142,6 +142,7 @@ public class JSONObject {
      * The map where the JSONObject's properties are kept.
      */
     private Map map;
+    private Map sensitiveMap;
 
 
     /**
@@ -158,6 +159,7 @@ public class JSONObject {
      */
     public JSONObject() {
         this.map = new HashMap();
+        this.sensitiveMap = new HashMap();
     }
 
 
@@ -172,7 +174,7 @@ public class JSONObject {
         this();
         for (int i = 0; i < names.length; i += 1) {
             try {
-                putOnce(names[i].toLowerCase(), jo.opt(names[i]));
+                putOnce(names[i], jo.opt(names[i]));
             } catch (JSONException ignore) {
             }
         }
@@ -202,7 +204,7 @@ public class JSONObject {
                 return;
             default:
                 x.back();
-                key = x.nextValue().toString().toLowerCase();
+                key = x.nextValue().toString();
             }
 
 // The key is followed by ':'. We will also tolerate '=' or '=>'.
@@ -244,13 +246,15 @@ public class JSONObject {
      */
     public JSONObject(Map map) {
         this.map = new HashMap();
+        this.sensitiveMap = new HashMap();
         if (map != null) {
             Iterator i = map.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry)i.next();
                 Object value = e.getValue();
                 if (value != null) {
-                    this.map.put(e.getKey(), wrap(value));
+                    this.map.put(e.getKey().toString().toLowerCase(), wrap(value));
+                    this.sensitiveMap.put(e.getKey(), wrap(value));
                 }
             }
         }
@@ -299,7 +303,7 @@ public class JSONObject {
         for (int i = 0; i < names.length; i += 1) {
             String name = names[i];
             try {
-                putOpt(name.toLowerCase(), c.getField(name).get(object));
+                putOpt(name, c.getField(name).get(object));
             } catch (Exception ignore) {
             }
         }
@@ -350,11 +354,11 @@ public class JSONObject {
                     JSONObject nextTarget = target.optJSONObject(segment);
                     if (nextTarget == null) {
                         nextTarget = new JSONObject();
-                        target.put(segment.toLowerCase(), nextTarget);
+                        target.put(segment, nextTarget);
                     }
                     target = nextTarget;
                 }
-                target.put(path[last].toLowerCase(), bundle.getString((String)key));
+                target.put(path[last], bundle.getString((String)key));
             }
         }
     }
@@ -383,12 +387,12 @@ public class JSONObject {
         testValidity(value);
         Object object = opt(key);
         if (object == null) {
-            put(key.toLowerCase(), value instanceof JSONArray ?
+            put(key, value instanceof JSONArray ?
                     new JSONArray().put(value) : value);
         } else if (object instanceof JSONArray) {
             ((JSONArray)object).put(value);
         } else {
-            put(key.toLowerCase(), new JSONArray().put(object).put(value));
+            put(key, new JSONArray().put(object).put(value));
         }
         return this;
     }
@@ -409,9 +413,9 @@ public class JSONObject {
         testValidity(value);
         Object object = opt(key);
         if (object == null) {
-            put(key.toLowerCase(), new JSONArray().put(value));
+            put(key, new JSONArray().put(value));
         } else if (object instanceof JSONArray) {
-            put(key.toLowerCase(), ((JSONArray)object).put(value));
+            put(key, ((JSONArray)object).put(value));
         } else {
             throw new JSONException("JSONObject[" + key +
                     "] is not a JSONArray.");
@@ -466,6 +470,24 @@ public class JSONObject {
         return object;
     }
 
+    /**
+     * Get the value object associated with a case sensitive
+     *
+     * @param key   A key string.
+     * @return      The object associated with the key.
+     * @throws      JSONException if the key is not found.
+     */
+    public Object getMap(String key) throws JSONException {
+        if (key == null) {
+            throw new JSONException("Null key.");
+        }
+        Object object = optMap(key);
+        if (object == null) {
+            throw new JSONException("JSONObject[" + quote(key) +
+                    "] not found.");
+        }
+        return object;
+    }
 
     /**
      * Get the boolean value associated with a key.
@@ -660,7 +682,15 @@ public class JSONObject {
     public boolean has(String key) {
         return this.map.containsKey(key);
     }
-    
+
+    /**
+     * In case I want to use case sensitive keys (like for Map)
+     * @param key   A key string.
+     * @return      true if the key exists in the json object
+     */
+    public boolean hasSensitive(String key) {
+        return this.sensitiveMap.containsKey(key);
+    }
     
     /**
      * Increment a property of a JSONObject. If there is no such property,
@@ -721,6 +751,14 @@ public class JSONObject {
         return this.map.size();
     }
 
+    /**
+     * Get the number of keys stored in the case sensitive JSONObject.
+     *
+     * @return The number of keys in the JSONObject.
+     */
+    public int mapLength() {
+        return this.sensitiveMap.size();
+    }
 
     /**
      * Produce a JSONArray containing the names of the elements of this
@@ -775,6 +813,14 @@ public class JSONObject {
         return key == null ? null : this.map.get(key);
     }
 
+    /**
+     * Get an optional value associated with a key.
+     * @param key   A key string.
+     * @return      An object which is the value, or null if there is no value.
+     */
+    public Object optMap(String key) {
+        return key == null ? null : this.sensitiveMap.get(key);
+    }
 
     /**
      * Get an optional boolean associated with a key.
@@ -998,7 +1044,8 @@ public class JSONObject {
 
                         Object result = method.invoke(bean, (Object[])null);
                         if (result != null) {
-                            map.put(key, wrap(result));
+                            map.put(key.toLowerCase(), wrap(result));
+                            sensitiveMap.put(key, wrap(result));
                         }
                     }
                 }
@@ -1109,7 +1156,8 @@ public class JSONObject {
         }
         if (value != null) {
             testValidity(value);
-            this.map.put(key, value);
+            this.map.put(key.toLowerCase(), value);
+            this.sensitiveMap.put(key, value);
         } else {
             remove(key);
         }
@@ -1128,7 +1176,12 @@ public class JSONObject {
      */
     public final JSONObject putOnce(String key, Object value) throws JSONException {
         if (key != null && value != null) {
-            if (opt(key) != null) {
+            /*
+             * NOTE: when a key is used multiple times (case insensitive) the
+             * most recent usage will overwrite all previous values when using
+             * all data structures except for Map<>
+             */
+            if (optMap(key) != null) {
                 throw new JSONException("Duplicate key \"" + key + "\"");
             }
             put(key, value);

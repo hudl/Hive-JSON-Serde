@@ -81,7 +81,7 @@ public class NestedWithMappingTest {
   @Test
   public void testDeSerialize() throws Exception {
     // Test that timestamp object can be deserialized
-    Writable w = new Text("{ \"ts\":\"2014-08-25T00:24:27.41103928Z\", \"t\":36529, \"Request\":{ \"path\":\"/foo/bar\", \"query\":{\"baz\": [\"ban\"]}, \"headers\":{ \"Accept\":[\"image/webp,*/*;q=0.8\"], \"Accept-Encoding\":[\"identity\"], \"Accept-Language\":[\"en-US,en;q=0.8\"], \"Connection\":[\"keep-alive\"], \"Referer\":[\"http://foo.com/bar\"], \"User-Agent\":[\"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36\"] }, \"ip\":\"10.0.0.1\" } }");
+    Writable w = new Text("{ \"ts\":\"2014-08-25T00:24:27.41103928Z\", \"t\":36529, \"request\":{ \"path\":\"/foo/bar\", \"query\":{\"baz\": [\"ban\"]}, \"headers\":{ \"Accept\":[\"image/webp,*/*;q=0.8\"], \"Accept-Encoding\":[\"identity\"], \"Accept-Language\":[\"en-US,en;q=0.8\"], \"Connection\":[\"keep-alive\"], \"Referer\":[\"http://foo.com/bar\"], \"user-agent\":[\"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36\"] }, \"ip\":\"10.0.0.1\" } }");
 
     JSONObject result = (JSONObject) instance.deserialize(w);
     
